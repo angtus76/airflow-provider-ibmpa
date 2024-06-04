@@ -21,7 +21,6 @@ dynamic = [
 ]
 requires-python = "~=3.8"
 dependencies = [
-    "apache-airflow>=2.9",
     "tm1py>=2.0"
 ]
 

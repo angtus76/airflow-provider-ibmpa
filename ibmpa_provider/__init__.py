@@ -8,7 +8,7 @@ def get_provider_info():
         "description": "IBM Planning Analytics for Apache Airflow providers.",  # Required
         "connection-types": [
             {
-                "connection-type": "IBM Planning Analytics",
+                "connection-type": "ibmpa",
                 "hook-class-name": "ibmpa_provider.hooks.ibmpa.IbmpaHook"
             }
         ],

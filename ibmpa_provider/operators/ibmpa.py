@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from airflow.exceptions import AirflowException
-from airflow.models import BaseOperator, BaseOperatorLink
+from airflow.models import BaseOperator
 
-from sample_provider.hooks.ibmpa import IbmpaHook
+from ibmpa_provider.hooks.ibmpa import IbmpaHook
 
 if TYPE_CHECKING:
     from airflow.utils.context import Context
@@ -29,41 +29,37 @@ class IbmpaBaseOperator(BaseOperator):
 
     # Specify the arguments that are allowed to parse with jinja templating
     template_fields = [
-        "endpoint",
-        "data",
-        "headers",
+        "cube",
+        "view",
+        "path",
+        "file_name",
+        "base_dt"
     ]
-    template_fields_renderers = {"headers": "json", "data": "py"}
-    template_ext = ()
-    ui_color = "#f4a460"
-
-    operator_extra_links = (SampleOperatorExtraLink(),)
 
     def __init__(
         self,
-        *,
-        endpoint: str | None = None,
-        method: str = "POST",
-        data: Any | None = None,
-        headers: dict[str, str] | None = None,
-        extra_options: dict[str, Any] | None = None,
-        sample_conn_id: str = SampleHook.default_conn_name,
+        ibmpa_conn_id,
+        cube,
+        view,
+        path,
+        file_name,
+        base_dt=None,
         **kwargs,
     ) -> None:
         super().__init__(**kwargs)
-        self.sample_conn_id = sample_conn_id
-        self.method = method
-        self.endpoint = endpoint
-        self.headers = headers or {}
-        self.data = data or {}
-        self.extra_options = extra_options or {}
-        if kwargs.get("xcom_push") is not None:
-            raise AirflowException("'xcom_push' was deprecated, use 'BaseOperator.do_xcom_push' instead")
+        self.ibmpa_conn_id = ibmpa_conn_id
+        self.cube = cube
+        self.view = view
+        self.path = path
+        self.file_name = file_name
+        self.base_dt = base_dt
 
-    def execute(self, context: Context) -> Any:
-        hook = SampleHook(self.method, sample_conn_id=self.sample_conn_id)
+    def execute(self, context: Context):
+        from TM1py import TM1Service
 
-        self.log.info("Call HTTP method")
-        response = hook.run(self.endpoint, self.data, self.headers)
+        hook = IbmpaHook(ibmpa_conn_id=self.ibmpa_conn_id)
+        config = hook.get_conn()
 
-        return response.text
+        with TM1Service(**config[self.ibmpa_conn_id]) as tm1:
+            version = tm1.server.get_product_version()
+            print(f'IBM PA Version: {version}')

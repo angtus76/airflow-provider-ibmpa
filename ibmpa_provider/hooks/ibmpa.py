@@ -54,7 +54,7 @@ class IbmpaHook(BaseHook):
         self.ibmpa_config = configparser.ConfigParser()
         self.ibmpa_config[self.ibmpa_conn_id] = {}
         self.ibmpa_config[self.ibmpa_conn_id]['address'] = conn.host
-        self.ibmpa_config[self.ibmpa_conn_id]['port'] = conn.port
+        self.ibmpa_config[self.ibmpa_conn_id]['port'] = str(conn.port)
         self.ibmpa_config[self.ibmpa_conn_id]['user'] = conn.login
         self.ibmpa_config[self.ibmpa_conn_id]['password'] = conn.password
         self.ibmpa_config[self.ibmpa_conn_id]['ssl'] = 'True' if conn.schema == 'https' else 'False'

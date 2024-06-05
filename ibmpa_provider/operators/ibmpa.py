@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from airflow.utils.context import Context
 
 
-class IbmpaBaseOperator(BaseOperator):
+class IbmpaCubeViewToCsvOperator(BaseOperator):
     """
     Calls an endpoint on an HTTP system to execute an action.
 
@@ -56,10 +56,21 @@ class IbmpaBaseOperator(BaseOperator):
 
     def execute(self, context: Context):
         from TM1py import TM1Service
+        import os
 
         hook = IbmpaHook(ibmpa_conn_id=self.ibmpa_conn_id)
-        config = hook.get_conn()
+        config = hook.get_connection()
 
         with TM1Service(**config[self.ibmpa_conn_id]) as tm1:
             version = tm1.server.get_product_version()
             print(f'IBM PA Version: {version}')
+
+            data = tm1.cubes.cells.execute_view_dataframe_pivot(self.cube, self.view)
+            data.reset_index(inplace=True)
+
+            if not os.path.exists(self.path):
+                os.system(f'mkdir -p {self.path}')
+
+            file_path = self.path + '/' + self.file_name
+            print(file_path)
+            data.to_csv(file_path, encoding='utf-8', index=False)

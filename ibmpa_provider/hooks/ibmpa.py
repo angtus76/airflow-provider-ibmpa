@@ -25,30 +25,14 @@ class IbmpaHook(BaseHook):
     hook_name = "IBM Planning Analytics"
 
     @staticmethod
-    def get_connection_form_widgets() -> dict[str, Any]:
-        """Returns connection widgets to add to connection form"""
-        from flask_appbuilder.fieldwidgets import BS3PasswordFieldWidget, BS3TextFieldWidget
-        from flask_babel import lazy_gettext
-        from wtforms import PasswordField, StringField
-
-        return {
-            "address": StringField(lazy_gettext("Address"), widget=BS3TextFieldWidget()),
-            "port": StringField(lazy_gettext("Port"), widget=BS3TextFieldWidget()),
-            "user": StringField(lazy_gettext("User"), widget=BS3TextFieldWidget()),
-            "password": PasswordField(lazy_gettext("Password"), widget=BS3PasswordFieldWidget()),
-            "ssl": StringField(lazy_gettext("SSL"), widget=BS3TextFieldWidget()),
-        }
-
-    @staticmethod
     def get_ui_field_behaviour() -> dict:
         """Returns custom field behaviour"""
         return {
-            "hidden_fields": [],
+            "hidden_fields": ["Extra"],
             "relabeling": {},
             "placeholders": {
-                "address": "PA Server IP",
+                "host": "PA Server IP Address",
                 "port": "PA Server HTTP Port",
-                "ssl": "True/False",
             },
         }
 
@@ -59,7 +43,7 @@ class IbmpaHook(BaseHook):
         super().__init__()
         self.ibmpa_conn_id = ibmpa_conn_id
 
-    def get_conn(self, headers: dict[str, Any] | None = None) -> configparser.ConfigParser:
+    def get_conn(self) -> configparser.ConfigParser:
         """
         Returns http session to use with requests.
 
@@ -69,10 +53,10 @@ class IbmpaHook(BaseHook):
         conn = self.get_connection(self.ibmpa_conn_id)
         self.ibmpa_config = configparser.ConfigParser()
         self.ibmpa_config[self.ibmpa_conn_id] = {}
-        self.ibmpa_config[self.ibmpa_conn_id]['address'] = conn.address
+        self.ibmpa_config[self.ibmpa_conn_id]['address'] = conn.host
         self.ibmpa_config[self.ibmpa_conn_id]['port'] = conn.port
-        self.ibmpa_config[self.ibmpa_conn_id]['user'] = conn.user
+        self.ibmpa_config[self.ibmpa_conn_id]['user'] = conn.login
         self.ibmpa_config[self.ibmpa_conn_id]['password'] = conn.password
-        self.ibmpa_config[self.ibmpa_conn_id]['ssl'] = conn.ssl
+        self.ibmpa_config[self.ibmpa_conn_id]['ssl'] = 'True' if conn.schema == 'https' else 'False'
 
         return self.ibmpa_config

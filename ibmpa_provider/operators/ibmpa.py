@@ -59,7 +59,7 @@ class IbmpaCubeViewToCsvOperator(BaseOperator):
         import os
 
         hook = IbmpaHook(ibmpa_conn_id=self.ibmpa_conn_id)
-        config = hook.get_connection()
+        config = hook.get_conn()
 
         with TM1Service(**config[self.ibmpa_conn_id]) as tm1:
             version = tm1.server.get_product_version()
